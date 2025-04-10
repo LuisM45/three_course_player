@@ -10,10 +10,10 @@ const effectiveKeyframeSize = KEYFRAME_STEP/SPEED
 
 const config = {
 	scenes:{
-		motor_box:()=>loadScene("/models/motor_box_assembly.glb"),
-		scarab:()=>loadScene("/models/assemble_scarab.glb"),
-		sumo:()=>loadScene("/models/assemble_sumo.glb"),
-		tracker:()=>loadScene("/models/assemble_tracker.glb"),
+		motor_box:()=>loadScene("models/motor_box_assembly.glb"),
+		scarab:()=>loadScene("models/assemble_scarab.glb"),
+		sumo:()=>loadScene("models/assemble_sumo.glb"),
+		tracker:()=>loadScene("models/assemble_tracker.glb"),
 	},
 	animations:{
 		next:animateNext,
@@ -143,7 +143,7 @@ function addLightning(){
 }
 
 function addEnviroment(){
-	new THREE.TextureLoader().load("/textures/autumn_field_puresky_1k.png",function(texture){
+	new THREE.TextureLoader().load("textures/autumn_field_puresky_1k.png",function(texture){
 		texture.mapping = THREE.EquirectangularReflectionMapping;
 		scene.background = texture
 		scene.environment = new THREE.PMREMGenerator(renderer).fromEquirectangular( texture ).texture;
