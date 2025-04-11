@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js';
+const KEYFRAME_STEP = 1;
+const SPEED = 1;
 
 const localization_es = {
 	lightning: "iluminación",
@@ -18,10 +20,6 @@ const localization_es = {
 	tracker: "seguidor"
 }
 const localization = localization_es
-
-const KEYFRAME_STEP = 1;
-const SPEED = 1;
-
 const effectiveKeyframeSize = KEYFRAME_STEP/SPEED
 
 const config = {
@@ -46,8 +44,8 @@ const scene = new THREE.Scene();
 const renderer = new THREE.WebGLRenderer();
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 const clock =  new THREE.Clock(	)
-const amb_light = new THREE.AmbientLight(0xFFFFFF, config.lightning.ambient);
-const dir_light = new THREE.DirectionalLight(0xFFFFFF, config.lightning.directional);
+const ambLight = new THREE.AmbientLight(0xFFFFFF, config.lightning.ambient);
+const dirLight = new THREE.DirectionalLight(0xFFFFFF, config.lightning.directional);
 
 
 
@@ -124,13 +122,13 @@ function addGUI(){
 		.name(localization.ambiental)
 		.listen()
 		.onChange(
-			t=>amb_light.intensity=t
+			t=>ambLight.intensity=t
 		)
 	lightning.add(config.lightning,"directional",0.0,2.0)
 		.name(localization.directional)
 		.listen()
 		.onChange(
-			t=>dir_light.intensity=t
+			t=>dirLight.intensity=t
 		)
 }
 
@@ -179,12 +177,12 @@ function animatePrev(){
 }
 
 function addLightning(){
-	dir_light.position.set(3, 4, 5);
-	dir_light.target.position.set(0, 0, 0);
-	dir_light.castShadow = true
-	scene.add(amb_light);
-	scene.add(dir_light);
-	scene.add(dir_light.target);
+	dirLight.position.set(3, 4, 5);
+	dirLight.target.position.set(0, 0, 0);
+	dirLight.castShadow = true
+	scene.add(ambLight);
+	scene.add(dirLight);
+	scene.add(dirLight.target);
 }
 
 function addEnviroment(){
