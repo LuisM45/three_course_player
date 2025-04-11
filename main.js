@@ -3,6 +3,22 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js';
 
+const localization_es = {
+	lightning: "iluminación",
+	directional: "direccional",
+	ambiental: "ambiental",
+	progress: "progreso",
+	back: "retroceder",
+	next: "siguiente",
+	animation: "animación",
+	scenes: "escenas",
+	motorBox: "motor",
+	scarab: "escarabajo",
+	sumo: "sumo",
+	tracker: "seguidor"
+}
+const localization = localization_es
+
 const KEYFRAME_STEP = 1;
 const SPEED = 1;
 
@@ -16,6 +32,7 @@ const config = {
 		tracker:()=>loadScene("models/assemble_tracker.glb"),
 	},
 	animations:{
+		progress:0,
 		next:animateNext,
 		previous:animatePrev,
 	},
@@ -36,8 +53,8 @@ const dir_light = new THREE.DirectionalLight(0xFFFFFF, config.lightning.directio
 
 let animationMixer = new THREE.AnimationMixer(scene)
 let gltf_object = undefined
-let animationProgress = 0
 let action = undefined
+let progressController = undefined
 
 addEnviroment();
 addLightning();
@@ -46,7 +63,7 @@ addGUI();
 renderer.setSize( window.innerWidth, window.innerHeight,false);
 
 renderer.setAnimationLoop( animate );
-document.body.appendChild( renderer.domElement );
+document.body.prepend(renderer.domElement)
 
 const loader = new GLTFLoader();
 
@@ -63,14 +80,16 @@ function loadScene(path){
 			scene.remove(gltf_object.scene)
 		}
 		gltf_object = gltf
-		animationProgress = 0;
-		
+		config.animations.progress = 0;
 		animationMixer = new THREE.AnimationMixer(gltf_object.scene)
 		console.log(gltf_object.animations)
 		if(gltf_object.animations){
-			action = animationMixer.clipAction(gltf_object.animations[0])
+			const animation = gltf_object.animations[0]
+			action = animationMixer.clipAction(animation)
 				.setLoop(THREE.LoopOnce,0);
 			action.clampWhenFinished=true;
+			progressController.reset()
+			progressController.max(animation.duration)
 			}
 			scene.add( gltf.scene);
 	})
@@ -79,56 +98,82 @@ function loadScene(path){
 
 function addGUI(){
 	const panel = new GUI( { width: 310 } );
-	const folder1 = panel.addFolder( 'Scenes' );
-	folder1.add(config.scenes,"motor_box")
-	folder1.add(config.scenes,"scarab")
-	folder1.add(config.scenes,"sumo")
-	folder1.add(config.scenes,"tracker")
-	const folder2 = panel.addFolder( 'Animation' );
-	folder2.add(config.animations,"next");
-	folder2.add(config.animations,"previous");
-	const folder3 = panel.addFolder( 'Lightning' )
-	folder3.add(config.lightning,"ambient",0.0,2.0).listen().onChange(
-		(t=>amb_light.intensity=t)
-	)
-	folder3.add(config.lightning,"directional",0.0,2.0).listen().onChange(
-		t=>dir_light.intensity=t
-	)
+	const scenes = panel.addFolder( localization.scenes );
+	scenes.add(config.scenes,"motor_box")
+		.name(localization.motorBox)
+	scenes.add(config.scenes,"scarab")
+		.name(localization.scarab)
+	scenes.add(config.scenes,"sumo")
+		.name(localization.sumo)
+	scenes.add(config.scenes,"tracker")
+		.name(localization.tracker)
+
+	const animation = panel.addFolder( localization.animation );
+	animation.add(config.animations,"next")
+		.name(localization.next);
+	animation.add(config.animations,"previous")
+		.name(localization.back);
+	progressController = animation.add(config.animations,"progress",0.0,0.0,KEYFRAME_STEP)
+		.name(localization.progress)
+		.listen().onChange(
+			t=>goToTime(t)
+		)
+
+	const lightning = panel.addFolder( 'Iluminacion')
+	lightning.add(config.lightning,"ambient",0.0,2.0)
+		.name(localization.ambiental)
+		.listen()
+		.onChange(
+			t=>amb_light.intensity=t
+		)
+	lightning.add(config.lightning,"directional",0.0,2.0)
+		.name(localization.directional)
+		.listen()
+		.onChange(
+			t=>dir_light.intensity=t
+		)
+}
+
+function goToTime(time){
+	if(!gltf_object) return;
+	if(!action) return
+	action.paused=true;
+	action.time = time;
+	config.animations.progress=time;
 }
 
 function animateNext(){
 	if(!gltf_object) return;
 	if(!action) return
-	if(animationProgress>=action.getClip().duration) return
-	console.log(animationProgress)
-	console.log(action)
-	action.paused=false;
-	action.time = animationProgress;
+	if(config.animations.progress>=action.getClip().duration) return
+	action.paused = false;
+	action.time = config.animations.progress;
 	action.setEffectiveTimeScale(SPEED)
 		.play()
-	animationProgress+=KEYFRAME_STEP;
+		config.animations.progress+=KEYFRAME_STEP;
+
 	setTimeout(()=>{	
 		action.paused=true;
-		action.time=animationProgress
-		},
+		action.time=config.animations.progress
+		progressController.updateDisplay()
+	},
 		effectiveKeyframeSize*1000)
 }
 
 function animatePrev(){
 	if(!gltf_object) return;
 	if(!action) return
-	if(animationProgress<=0) return
-	console.log(animationProgress)
-	console.log(action)
+	if(config.animations.progress<=0) return
+	action.paused = false;
+	action.time = config.animations.progress;
+	action.setEffectiveTimeScale(-SPEED)
+		.play()	
+		config.animations.progress-=KEYFRAME_STEP;
 
-	action.paused=false;
-	action.time = animationProgress;
-	action.play()
-		.setEffectiveTimeScale(-SPEED)
-	animationProgress-=KEYFRAME_STEP;
 	setTimeout(()=>{	
 		action.paused=true;
-		action.time=animationProgress
+		action.time=config.animations.progress
+		progressController.updateDisplay()
 		},
 		effectiveKeyframeSize*1000)
 }
