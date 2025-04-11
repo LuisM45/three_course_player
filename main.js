@@ -41,8 +41,8 @@ const config = {
 }
 
 const scene = new THREE.Scene();
-const renderer = new THREE.WebGLRenderer();
-const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+const renderer = new THREE.WebGLRenderer({antialias: true});
+const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 100 );
 const clock =  new THREE.Clock(	)
 const ambLight = new THREE.AmbientLight(0xFFFFFF, config.lightning.ambient);
 const dirLight = new THREE.DirectionalLight(0xFFFFFF, config.lightning.directional);
