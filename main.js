@@ -50,7 +50,7 @@ const dirLight = new THREE.DirectionalLight(0xFFFFFF, config.lightning.direction
 
 
 let animationMixer = new THREE.AnimationMixer(scene)
-let gltf_object = undefined
+let gltfObject = undefined
 let action = undefined
 let progressController = undefined
 
@@ -74,22 +74,22 @@ camera.position.z = 5;
 
 function loadScene(path){
 	loader.load( path, function ( gltf ) {
-		if(gltf_object){
-			scene.remove(gltf_object.scene)
+		if(gltfObject){
+			scene.remove(gltfObject.scene)
 		}
-		gltf_object = gltf
+		gltfObject = gltf
 		config.animations.progress = 0;
-		animationMixer = new THREE.AnimationMixer(gltf_object.scene)
-		console.log(gltf_object.animations)
-		if(gltf_object.animations){
-			const animation = gltf_object.animations[0]
+		animationMixer = new THREE.AnimationMixer(gltfObject.scene)
+		console.log(gltfObject.animations)
+		if(gltfObject.animations){
+			const animation = gltfObject.animations[0]
 			action = animationMixer.clipAction(animation)
 				.setLoop(THREE.LoopOnce,0);
 			action.clampWhenFinished=true;
 			progressController.reset()
 			progressController.max(animation.duration)
-			}
-			scene.add( gltf.scene);
+		}
+		scene.add( gltf.scene);
 	})
 }
 
@@ -117,7 +117,7 @@ function addGUI(){
 			t=>goToTime(t)
 		)
 
-	const lightning = panel.addFolder( 'Iluminacion')
+	const lightning = panel.addFolder(localization.lightning)
 	lightning.add(config.lightning,"ambient",0.0,2.0)
 		.name(localization.ambiental)
 		.listen()
@@ -133,17 +133,19 @@ function addGUI(){
 }
 
 function goToTime(time){
-	if(!gltf_object) return;
+	if(!gltfObject) return;
 	if(!action) return
+
 	action.paused=true;
 	action.time = time;
 	config.animations.progress=time;
 }
 
 function animateNext(){
-	if(!gltf_object) return;
+	if(!gltfObject) return;
 	if(!action) return
 	if(config.animations.progress>=action.getClip().duration) return
+
 	action.paused = false;
 	action.time = config.animations.progress;
 	action.setEffectiveTimeScale(SPEED)
@@ -159,14 +161,15 @@ function animateNext(){
 }
 
 function animatePrev(){
-	if(!gltf_object) return;
+	if(!gltfObject) return;
 	if(!action) return
 	if(config.animations.progress<=0) return
+
 	action.paused = false;
 	action.time = config.animations.progress;
 	action.setEffectiveTimeScale(-SPEED)
 		.play()	
-		config.animations.progress-=KEYFRAME_STEP;
+	config.animations.progress-=KEYFRAME_STEP;
 
 	setTimeout(()=>{	
 		action.paused=true;
@@ -180,6 +183,7 @@ function addLightning(){
 	dirLight.position.set(3, 4, 5);
 	dirLight.target.position.set(0, 0, 0);
 	dirLight.castShadow = true
+	
 	scene.add(ambLight);
 	scene.add(dirLight);
 	scene.add(dirLight.target);
