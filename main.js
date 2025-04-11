@@ -58,8 +58,8 @@ addEnviroment();
 addLightning();
 addGUI();
 
-renderer.setSize( window.innerWidth, window.innerHeight,false);
-
+renderer.setPixelRatio( window.devicePixelRatio )
+renderer.setSize( window.innerWidth, window.innerHeight);
 renderer.setAnimationLoop( animate );
 document.body.prepend(renderer.domElement)
 
